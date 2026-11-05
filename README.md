@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Cleaning & Exploratory Data Analysis</title>
+    <title>Data Cleaning & Exploratory Data Analysis using MySQL</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,8 +34,14 @@
         code {
             font-family: Consolas, Monaco, monospace;
         }
-        ul {
+        ul, ol {
             margin-bottom: 20px;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -47,27 +53,49 @@
         <hr>
 
         <h2>🛠️ Project Architecture & Workflow</h2>
-        <ul>
+        <ol>
             <li><strong>Database Setup:</strong> Creating a staging database and table structure to preserve raw input data.</li>
-            <li><strong>Data Cleaning & Preprocessing:</strong> Removing duplicates, standardizing text fields, fixing dates, and handling missing values.</li>
-            <li><strong>Exploratory Data Analysis (EDA):</strong> Running summary statistics, group aggregations, rolling totals, and ranking queries using window functions.</li>
-        </ul>
+            <li><strong>Data Cleaning & Preprocessing:</strong>
+                <ul>
+                    <li>Removing duplicate records using <code>ROW_NUMBER()</code> and CTEs / Window Functions.</li>
+                    <li>Standardizing text fields (trimming whitespace, unifying naming conventions).</li>
+                    <li>Standardizing dates and altering column data types (<code>STR_TO_DATE</code>, <code>ALTER TABLE</code>).</li>
+                    <li>Handling <code>NULL</code> values and blank string entries appropriately.</li>
+                    <li>Removing irrelevant or redundant columns/rows.</li>
+                </ul>
+            </li>
+            <li><strong>Exploratory Data Analysis (EDA):</strong>
+                <ul>
+                    <li>Summary statistics and distributions.</li>
+                    <li>Aggregations by group (e.g., industry, country, year, company).</li>
+                    <li>Rolling totals and ranking using Window Functions (<code>SUM() OVER()</code>, <code>DENSE_RANK()</code>).</li>
+                </ul>
+            </li>
+        </ol>
 
         <hr>
 
         <h2>💻 Technical Stack & Tools</h2>
         <ul>
             <li><strong>Database Engine:</strong> MySQL Server / MySQL Workbench</li>
-            <li><strong>Language:</strong> SQL (DDL & DML)</li>
-            <li><strong>Key Concepts:</strong> CTEs, Window Functions (<code>ROW_NUMBER()</code>, <code>DENSE_RANK()</code>, <code>SUM() OVER()</code>), String Functions, Date Formatting.</li>
+            <li><strong>Language:</strong> SQL (Data Definition Language & Data Manipulation Language)</li>
+            <li><strong>Key SQL Concepts Used:</strong>
+                <ul>
+                    <li><code>CTE</code> (Common Table Expressions)</li>
+                    <li>Window Functions (<code>ROW_NUMBER()</code>, <code>DENSE_RANK()</code>, <code>SUM() OVER()</code>)</li>
+                    <li>String Functions (<code>TRIM()</code>, <code>LOWER()</code>, <code>LIKE</code>)</li>
+                    <li>Date Functions (<code>STR_TO_DATE()</code>, <code>DATE_FORMAT()</code>)</li>
+                    <li>Control Flow (<code>CASE WHEN</code>, <code>COALESCE()</code>)</li>
+                </ul>
+            </li>
         </ul>
 
         <hr>
 
-        <h2>📋 Data Cleaning Steps</h2>
+        <h2>📋 Data Cleaning Steps Summary</h2>
 
         <h3>1. Removing Duplicates</h3>
-        <p>Duplicate records were identified and removed using window functions over unique partition keys:</p>
+        <p>Duplicate records were identified using window functions over unique partition keys:</p>
 <pre><code>WITH duplicate_cte AS (
     SELECT *,
            ROW_NUMBER() OVER(
@@ -79,7 +107,7 @@ DELETE FROM staging_table
 WHERE row_num &gt; 1;</code></pre>
 
         <h3>2. Standardizing Data</h3>
-        <p>Text formatting and date types were unified across records:</p>
+        <p>Text formatting, whitespace issues, and date columns were cleaned and formatted uniformly across the dataset:</p>
 <pre><code>-- Trimming extra whitespace from company names
 UPDATE staging_table
 SET company = TRIM(company);
@@ -92,7 +120,7 @@ ALTER TABLE staging_table
 MODIFY COLUMN `date` DATE;</code></pre>
 
         <h3>3. Handling Null & Blank Values</h3>
-        <p>Missing strings were converted to actual database <code>NULL</code> values and populated using matching records where possible:</p>
+        <p>Missing or blank entries were standardized to <code>NULL</code> values, and relational data was used to populate missing rows where possible:</p>
 <pre><code>-- Replacing empty string values with NULL
 UPDATE staging_table
 SET industry = NULL
@@ -107,7 +135,7 @@ WHERE t1.industry IS NULL
   AND t2.industry IS NOT NULL;</code></pre>
 
         <h3>4. Removing Unnecessary Columns & Rows</h3>
-        <p>Rows lacking essential metric values and helper columns created during processing were cleaned up:</p>
+        <p>Rows lacking critical metrics and helper columns utilized during processing were cleaned up:</p>
 <pre><code>-- Removing rows where both key layoff metrics are missing
 DELETE FROM staging_table
 WHERE total_laid_off IS NULL 
@@ -121,22 +149,43 @@ DROP COLUMN row_num;</code></pre>
 
         <h2>📈 Key Insights from EDA</h2>
         <ul>
-            <li><strong>High-Impact Periods:</strong> Pinpointed peak layoff windows across major tech and financial cycles.</li>
-            <li><strong>Industry Vulnerability:</strong> Evaluated which sectors experienced the highest volume of reductions.</li>
-            <li><strong>Funding Stage Impact:</strong> Analyzed layoff trends relative to company maturity (e.g., Post-IPO vs. Early Stage).</li>
+            <li><strong>High-Impact Periods:</strong> Identified top quarters and years with maximum layoffs across companies.</li>
+            <li><strong>Industry Breakdown:</strong> Highlighted top impacted sectors (e.g., Tech, Consumer, Retail).</li>
+            <li><strong>Geographic & Stage Trends:</strong> Discovered layoff patterns across different countries and company funding stages (e.g., Post-IPO vs. Series A–D).</li>
+            <li><strong>Rolling Trends:</strong> Calculated cumulative totals over time to visualize trajectory trends.</li>
         </ul>
 
         <hr>
 
         <h2>🚀 How to Run This Project</h2>
         <ol>
-            <li>Clone the repository locally: <code>git clone https://github.com/Utkarsh-Malhotra-02/data_cleaning_and_exploratory_data_analysis_using_MySQL.git</code></li>
-            <li>Open MySQL Workbench and create your local database instance.</li>
-            <li>Execute <code>layoffs_data_cleaning.sql</code> followed by <code>layoffs_eda.sql</code>.</li>
+            <li><strong>Clone the Repository:</strong>
+<pre><code>git clone https://github.com/Utkarsh-Malhotra-02/data_cleaning_and_exploratory_data_analysis_using_MySQL.git
+cd data_cleaning_and_exploratory_data_analysis_using_MySQL</code></pre>
+            </li>
+            <li><strong>Database Setup:</strong>
+                <ul>
+                    <li>Open MySQL Workbench or your preferred SQL client.</li>
+                    <li>Create a database:
+<pre><code>CREATE DATABASE IF NOT EXISTS world_layoffs;
+USE world_layoffs;</code></pre>
+                    </li>
+                </ul>
+            </li>
+            <li><strong>Execute SQL Scripts:</strong>
+                <ul>
+                    <li>Run the data cleaning script: <code>layoffs_data_cleaning.sql</code></li>
+                    <li>Run the exploratory analysis script: <code>layoffs_eda.sql</code></li>
+                </ul>
+            </li>
         </ol>
 
         <hr>
-        <p><em>Author: Utkarsh Malhotra | GitHub: <a href="https://github.com/Utkarsh-Malhotra-02" target="_blank">@Utkarsh-Malhotra-02</a></em></p>
+
+        <h2>👤 Author</h2>
+        <p><strong>Utkarsh Malhotra</strong><br>
+        GitHub: <a href="https://github.com/Utkarsh-Malhotra-02" target="_blank">@Utkarsh-Malhotra-02</a></p>
+        <p><em>Feel free to star ⭐️ this repository if you find it helpful!</em></p>
     </div>
 </body>
 </html>
